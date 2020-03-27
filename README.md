@@ -9,3 +9,5 @@ Challenge participants must submit their code into a black box environment for t
 The PAI Steering Committee has emphasized the need to ensure that all technical efforts incorporate attention to how the resulting code and products based on it can be made as accessible and useful as possible to key frontline defenders of information quality such as journalists and civic leaders around the world. The DFDC results will be a contribution to this effort and building a robust response to the emergent threat deepfakes pose globally.
 
 The full training set is just over 470 GB.
+
+https://www.kaggle.com/c/deepfake-detection-challenge/data
