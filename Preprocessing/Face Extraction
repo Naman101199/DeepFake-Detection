@@ -7,6 +7,37 @@ from tqdm import tqdm
 import math
 from mtcnn import MTCNN
 
+detector = MTCNN()
+def detect_face(img):
+    img=cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
+    final = []
+    detected_faces_raw = detector.detect_faces(img)
+    if detected_faces_raw==[]:
+        #print('no faces found')
+        return []
+    confidences=[]
+    for n in detected_faces_raw:
+        x,y,w,h=n['box']
+        final.append([x,y,w,h])
+        confidences.append(n['confidence'])
+    if max(confidences)<0.7:
+        return []
+    max_conf_coord=final[confidences.index(max(confidences))]
+    #return final
+    return max_conf_coord
+
+def crop(img,x,y,w,h):
+    x-=40
+    y-=40
+    w+=80
+    h+=80
+    if x<0:
+        x=0
+    if y<=0:
+        y=0
+    return cv2.cvtColor(cv2.resize(img[y:y+h,x:x+w],(299,299)),cv2.COLOR_BGR2RGB)
+
+
 os.chdir("E:\Deepfake Detection Challenge")
 for video in range(0,50):
     train_sample_metadata = pd.read_json('dfdc_train_part_4/metadata.json').T
@@ -41,37 +72,6 @@ for video in range(0,50):
 
     train_video_filespath = REAL + FAKE
     shuffle(train_video_filespath)
-
-    detector = MTCNN()
-    def detect_face(img):
-        img=cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
-        final = []
-        detected_faces_raw = detector.detect_faces(img)
-        if detected_faces_raw==[]:
-            #print('no faces found')
-            return []
-        confidences=[]
-        for n in detected_faces_raw:
-            x,y,w,h=n['box']
-            final.append([x,y,w,h])
-            confidences.append(n['confidence'])
-        if max(confidences)<0.7:
-            return []
-        max_conf_coord=final[confidences.index(max(confidences))]
-        #return final
-        return max_conf_coord
-
-    def crop(img,x,y,w,h):
-        x-=40
-        y-=40
-        w+=80
-        h+=80
-        if x<0:
-            x=0
-        if y<=0:
-            y=0
-        return cv2.cvtColor(cv2.resize(img[y:y+h,x:x+w],(299,299)),cv2.COLOR_BGR2RGB)
-
 
     for i in tqdm(range(len(train_video_filespath))):
         features = []
