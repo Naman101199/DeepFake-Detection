@@ -8,90 +8,90 @@ import math
 from mtcnn import MTCNN
 
 os.chdir("E:\Deepfake Detection Challenge")
+for video in range(0,50):
+    train_sample_metadata = pd.read_json('dfdc_train_part_4/metadata.json').T
+    train_dir = 'dfdc_train_part_%d/'%video
+    train_video_filespath = [train_dir + x for x in tqdm(os.listdir(train_dir))]
+    train_sample_imgs = [x for x in tqdm(os.listdir(train_dir))]
 
-train_sample_metadata = pd.read_json('dfdc_train_part_4/metadata.json').T
-train_dir = 'dfdc_train_part_4/'
-train_video_filespath = [train_dir + x for x in tqdm(os.listdir(train_dir))]
-train_sample_imgs = [x for x in tqdm(os.listdir(train_dir))]
+    train_sample_imgs.remove('metadata.json')
+    train_video_filespath.remove(''dfdc_train_part_%d/metadata.json'%video)
 
-train_sample_imgs.remove('metadata.json')
-train_video_filespath.remove('dfdc_train_part_4/metadata.json')
-
-train_video_filespath = sorted(train_video_filespath)
-train_sample_imgs = sorted(train_sample_imgs)
-
-
-Total = []
-#train_sample_metadata = sorted(train_sample_metadata)
-print(train_sample_metadata)
-for i in range(len(train_video_filespath)):
-    Total.append([train_video_filespath[i],train_sample_metadata.iloc[i,0]])
-
-REAL = []
-FAKE = []
-for i in range(len(Total)):
-    if(Total[i][1] == "FAKE"):
-        FAKE.append(Total[i])
-    else:
-        REAL.append(Total[i])
-
-len(REAL)
-import random
-FAKE = random.sample(FAKE,len(REAL))
-
-train_video_filespath = REAL + FAKE
-shuffle(train_video_filespath)
-
-detector = MTCNN()
-def detect_face(img):
-    img=cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
-    final = []
-    detected_faces_raw = detector.detect_faces(img)
-    if detected_faces_raw==[]:
-        #print('no faces found')
-        return []
-    confidences=[]
-    for n in detected_faces_raw:
-        x,y,w,h=n['box']
-        final.append([x,y,w,h])
-        confidences.append(n['confidence'])
-    if max(confidences)<0.7:
-        return []
-    max_conf_coord=final[confidences.index(max(confidences))]
-    #return final
-    return max_conf_coord
-
-def crop(img,x,y,w,h):
-    x-=40
-    y-=40
-    w+=80
-    h+=80
-    if x<0:
-        x=0
-    if y<=0:
-        y=0
-    return cv2.cvtColor(cv2.resize(img[y:y+h,x:x+w],(299,299)),cv2.COLOR_BGR2RGB)
+    train_video_filespath = sorted(train_video_filespath)
+    train_sample_imgs = sorted(train_sample_imgs)
 
 
-for i in tqdm(range(len(train_video_filespath))):
-    features = []
-    labels = []
-    v_cap = cv2.VideoCapture(train_video_filespath[i][0])
-    frameRate = v_cap.get(5)
-    while(v_cap.isOpened()):
-        frameId = v_cap.get(1) #current frame number
-        ret, vframe = v_cap.read()
-        if (ret != True):
-            break
-        if (frameId % math.floor(frameRate) == 0):
-            bounding_box = detect_face(vframe)
-            if bounding_box == []:
-                pass
-            else:
-                x,y,w,h = bounding_box
-                frame = crop(vframe,x,y,w,h)
-                features.append(frame)
-                labels.append(train_video_filespath[i][1])
-    v_cap.release()
-    np.save("features_04_%d.npy" % i,features) 
-    np.save("labels_04_%d.npy" % i,labels)
+    Total = []
+    #train_sample_metadata = sorted(train_sample_metadata)
+    print(train_sample_metadata)
+    for i in range(len(train_video_filespath)):
+        Total.append([train_video_filespath[i],train_sample_metadata.iloc[i,0]])
+
+    REAL = []
+    FAKE = []
+    for i in range(len(Total)):
+        if(Total[i][1] == "FAKE"):
+            FAKE.append(Total[i])
+        else:
+            REAL.append(Total[i])
+
+    len(REAL)
+    import random
+    FAKE = random.sample(FAKE,len(REAL))
+
+    train_video_filespath = REAL + FAKE
+    shuffle(train_video_filespath)
+
+    detector = MTCNN()
+    def detect_face(img):
+        img=cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
+        final = []
+        detected_faces_raw = detector.detect_faces(img)
+        if detected_faces_raw==[]:
+            #print('no faces found')
+            return []
+        confidences=[]
+        for n in detected_faces_raw:
+            x,y,w,h=n['box']
+            final.append([x,y,w,h])
+            confidences.append(n['confidence'])
+        if max(confidences)<0.7:
+            return []
+        max_conf_coord=final[confidences.index(max(confidences))]
+        #return final
+        return max_conf_coord
+
+    def crop(img,x,y,w,h):
+        x-=40
+        y-=40
+        w+=80
+        h+=80
+        if x<0:
+            x=0
+        if y<=0:
+            y=0
+        return cv2.cvtColor(cv2.resize(img[y:y+h,x:x+w],(299,299)),cv2.COLOR_BGR2RGB)
+
+
+    for i in tqdm(range(len(train_video_filespath))):
+        features = []
+        labels = []
+        v_cap = cv2.VideoCapture(train_video_filespath[i][0])
+        frameRate = v_cap.get(5)
+        while(v_cap.isOpened()):
+            frameId = v_cap.get(1) #current frame number
+            ret, vframe = v_cap.read()
+            if (ret != True):
+                break
+            if (frameId % math.floor(frameRate) == 0):
+                bounding_box = detect_face(vframe)
+                if bounding_box == []:
+                    pass
+                else:
+                    x,y,w,h = bounding_box
+                    frame = crop(vframe,x,y,w,h)
+                    features.append(frame)
+                    labels.append(train_video_filespath[i][1])
+        v_cap.release()
+    np.save("features_%d.npy" % video,features) 
+    np.save("labels_%d.npy" % video,labels)
